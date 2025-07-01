@@ -1,0 +1,29 @@
+name: Shopify AI Blog
+
+on:
+  schedule:
+    - cron: '0 5 * * *'  # Her gün sabah 05:00 UTC (07:00 Almanya saati)
+  workflow_dispatch:
+
+jobs:
+  generate_and_post_blog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repo'yu klonla
+        uses: actions/checkout@v3
+
+      - name: Python ortamını kur
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Gereken Python kütüphanelerini yükle
+        run: pip install openai requests
+
+      - name: Blog yazısını üret ve Shopify'a gönder
+        run: python shopify_blog.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+          SHOPIFY_STORE: ${{ secrets.SHOPIFY_STORE }}
+          BLOG_ID: ${{ secrets.BLOG_ID }}
