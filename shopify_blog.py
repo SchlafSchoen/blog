@@ -9,7 +9,7 @@ BLOG_ID = os.getenv("BLOG_ID")
 
 def generate_topic():
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo",
         messages=[{
             "role": "user",
             "content": "Erstelle einen kurzen, interessanten Blogartikel-Titel auf Deutsch für eine Matratzenmarke namens 'Schlaf Schön®'."
@@ -19,7 +19,7 @@ def generate_topic():
 
 def generate_blog_content(topic):
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo",
         messages=[{
             "role": "user",
             "content": f"Schreibe einen SEO-freundlichen, informativen Blogartikel auf Deutsch mit dem Titel '{topic}'. Der Text sollte ca. 300 Wörter lang sein und direkt die Kunden einer Matratzenmarke namens 'Schlaf Schön®' ansprechen."
