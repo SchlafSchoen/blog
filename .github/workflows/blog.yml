@@ -2,7 +2,7 @@ name: Shopify AI Blog
 
 on:
   schedule:
-    - cron: '0 5 * * *'  # Her gün sabah 05:00 UTC (07:00 Almanya saati)
+    - cron: '0 5 * * *'
   workflow_dispatch:
 
 jobs:
@@ -17,10 +17,10 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Gereken Python kütüphanelerini yükle
-        run: pip install openai requests
+      - name: Gereken paketleri yükle
+        run: pip install -r requirements.txt
 
-      - name: Blog yazısını üret ve Shopify'a gönder
+      - name: Blog yazısını oluştur ve Shopify’a gönder
         run: python shopify_blog.py
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
