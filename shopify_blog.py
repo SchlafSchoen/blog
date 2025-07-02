@@ -53,7 +53,10 @@ def post_to_shopify(title, content_html, image_url):
     data = {
         "article": {
             "title": title,
-            "body_html": full_html
+            "body_html": full_html,
+            "image": {
+                "src": image_url
+            }
         }
     }
     response = requests.post(url, headers=headers, json=data)
