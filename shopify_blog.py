@@ -18,17 +18,18 @@ def generate_topic():
     return response.choices[0].message["content"].strip()
 
 def generate_blog_content(topic):
-    prompt = f"""
-Schreibe einen SEO-optimierten Blogartikel auf Deutsch zum Thema: '{topic}'.
-Der Artikel soll mindestens 300 Wörter lang sein, relevante Keywords enthalten und gut strukturiert sein (mit Absätzen, Zwischenüberschriften).
-Zielgruppe sind Menschen, die eine hochwertige Matratze kaufen möchten.
-Der Artikel soll von der Matratzenmarke 'Schlaf Schön®' stammen und den Leser direkt ansprechen.
-"""
+    prompt = (
+        f"Schreibe einen SEO-optimierten Blogartikel auf Deutsch zum Thema: '{topic}'.\n"
+        "Der Artikel soll mindestens 300 Wörter lang sein, relevante Keywords enthalten und gut strukturiert sein "
+        "(mit Absätzen, Zwischenüberschriften).\n"
+        "Zielgruppe sind Menschen, die eine hochwertige Matratze kaufen möchten.\n"
+        "Der Artikel soll von der Matratzenmarke 'Schlaf Schön®' stammen und den Leser direkt ansprechen."
+    )
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{
             "role": "user",
-            "content": prompt.strip()
+            "content": prompt
         }]
     )
     return response.choices[0].message["content"].strip()
@@ -42,7 +43,8 @@ def generate_image(topic):
     return response['data'][0]['url']
 
 def post_to_shopify(title, content_html, image_url):
-    full_html = f'<img src="{image_url}" alt="{title}" style="max-width:100%; height:auto;"><br><br>{content_html.replace("\n", "<br>")}'
+    converted_content = content_html.replace("\n", "<br>")
+    full_html = f'<img src="{image_url}" alt="{title}" style="max-width:100%; height:auto;"><br><br>{converted_content}'
     url = f"https://{SHOPIFY_STORE}/admin/api/2023-07/blogs/{BLOG_ID}/articles.json"
     headers = {
         "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
