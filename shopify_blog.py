@@ -26,7 +26,10 @@ def generate_topic():
     return clean_title(response.choices[0].message["content"].strip())
 
 def generate_faq(topic):
-    faq_prompt = f"Du bist ein SEO-Texter. Erstelle 5 häufig gestellte Fragen mit kurzen prägnanten Antworten zum Thema '{topic}'."
+    faq_prompt = (
+        f"Du bist ein SEO-Texter. Erstelle 5 häufig gestellte Fragen mit jeweils einer sehr kurzen Antwort zum Thema '{topic}'. "
+        "Verwende keine Absätze oder langen Erklärungen."
+    )
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{ "role": "user", "content": faq_prompt }]
@@ -36,7 +39,8 @@ def generate_faq(topic):
 def generate_blog_content(topic):
     prompt = (
         f"Du bist ein professioneller SEO-Texter mit Fokus auf organische Sichtbarkeit. "
-        f"Schreibe einen strukturierten Blogartikel auf Deutsch über folgendes Thema: {topic}.\n"
+        f"Schreibe einen strukturierten Blogartikel auf Deutsch über folgendes Thema: {topic}.
+"
         "Verwende <h1> für den Haupttitel, <h2> für Zwischenüberschriften, nutze klare Absätze. "
         "Integriere relevante Keywords für Google-Indexierung. Erwähne die Marke 'Schlaf Schön®' nur einmal und subtil, "
         "ohne Werbung. Der Artikel soll mindestens 400 Wörter umfassen. Zielgruppe sind Menschen mit Schlafproblemen "
@@ -57,20 +61,11 @@ def generate_tags(topic):
     tags = response.choices[0].message["content"].strip().split("\n")
     return [tag.strip() for tag in tags if tag.strip()]
 
-def generate_image(topic):
-    image_prompt = f"{topic}. Symbolische Darstellung: schlafendes Kind, ruhige Stimmung, wenig sichtbare Matratze, keine Marke. Minimalistisch, natürliches Licht."
-    response = openai.Image.create(
-        prompt=image_prompt,
-        n=1,
-        size="1024x1024"
-    )
-    return response['data'][0]['url']
-
-def post_to_shopify(title, content_html, image_url, tags):
+def post_to_shopify(title, content_html, tags):
     faq = generate_faq(title)
     faq_html = '<h2>Häufige Fragen</h2><ul>' + ''.join(f'<li>{line}</li>' for line in faq.split("\n") if line.strip()) + '</ul>'
     converted_content = content_html.replace("\n", "<br>")
-    full_html = f'<img src="{image_url}" alt="{title}" style="max-width:100%; height:auto;"><br><br>{converted_content}<br><br>{faq_html}'
+    full_html = f'{converted_content}<br><br>{faq_html}'
 
     url = f"https://{SHOPIFY_STORE}/admin/api/2023-07/blogs/{BLOG_ID}/articles.json"
     headers = {
@@ -81,11 +76,7 @@ def post_to_shopify(title, content_html, image_url, tags):
         "article": {
             "title": title,
             "body_html": full_html,
-            "tags": ', '.join(tags),
-            "image": {
-                "src": image_url,
-                "alt": title
-            }
+            "tags": ', '.join(tags)
         }
     }
     response = requests.post(url, headers=headers, json=data)
@@ -95,6 +86,5 @@ def post_to_shopify(title, content_html, image_url, tags):
 if __name__ == "__main__":
     topic = generate_topic()
     content = generate_blog_content(topic)
-    image_url = generate_image(topic)
     tags = generate_tags(topic)
-    post_to_shopify(topic, content, image_url, tags)
+    post_to_shopify(topic, content, tags)
