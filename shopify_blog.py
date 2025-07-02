@@ -26,10 +26,15 @@ def generate_topic():
     return clean_title(response.choices[0].message["content"].strip())
 
 def generate_faq(topic):
-    faq_prompt = (
-        f"Du bist ein SEO-Texter. Erstelle 5 häufig gestellte Fragen mit jeweils einer sehr kurzen Antwort zum Thema '{topic}'. "
-        "Verwende keine Absätze oder langen Erklärungen."
-    )
+    faq_prompt = f"""Du bist ein SEO-Texter. 
+Erstelle 5 häufig gestellte Fragen mit jeweils einer sehr kurzen Antwort zum Thema "{topic}". 
+Vermeide Absätze und lange Erklärungen. Antworte im Format:
+
+Frage 1: ...
+Antwort: ...
+Frage 2: ...
+Antwort: ...
+"""
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{ "role": "user", "content": faq_prompt }]
@@ -37,15 +42,12 @@ def generate_faq(topic):
     return response.choices[0].message["content"].strip()
 
 def generate_blog_content(topic):
-    prompt = (
-        f"Du bist ein professioneller SEO-Texter mit Fokus auf organische Sichtbarkeit. "
-        f"Schreibe einen strukturierten Blogartikel auf Deutsch über folgendes Thema: {topic}.
-"
-        "Verwende <h1> für den Haupttitel, <h2> für Zwischenüberschriften, nutze klare Absätze. "
-        "Integriere relevante Keywords für Google-Indexierung. Erwähne die Marke 'Schlaf Schön®' nur einmal und subtil, "
-        "ohne Werbung. Der Artikel soll mindestens 400 Wörter umfassen. Zielgruppe sind Menschen mit Schlafproblemen "
-        "oder dem Wunsch nach besserer Schlafqualität."
-    )
+    prompt = f"""Du bist ein professioneller SEO-Texter mit Fokus auf organische Sichtbarkeit.
+Schreibe einen strukturierten Blogartikel auf Deutsch über folgendes Thema: {topic}.
+Verwende <h1> für den Haupttitel, <h2> für Zwischenüberschriften, nutze klare Absätze.
+Integriere relevante Keywords für Google-Indexierung. Erwähne die Marke 'Schlaf Schön®' nur einmal und subtil,
+ohne Werbung. Der Artikel soll mindestens 400 Wörter umfassen. Zielgruppe sind Menschen mit Schlafproblemen
+oder dem Wunsch nach besserer Schlafqualität."""
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{ "role": "user", "content": prompt }]
