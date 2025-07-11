@@ -46,14 +46,14 @@ Antwort: ...
     )
     return response.choices[0].message["content"].strip()
 
-# Blog içeriği üret
+# Blog içeriği üret (başlık eklettirme!)
 def generate_blog_content(topic):
     prompt = f"""Du bist ein professioneller SEO-Texter mit Fokus auf organische Sichtbarkeit.
 Schreibe einen strukturierten Blogartikel auf Deutsch über folgendes Thema: {topic}.
-Verwende <h1> für den Haupttitel, <h2> für Zwischenüberschriften, nutze klare Absätze.
+Verwende <h2> für Zwischenüberschriften, nutze klare Absätze.
 Integriere relevante Keywords für Google-Indexierung. Erwähne die Marke 'Schlaf Schön®' nur einmal und subtil,
 ohne Werbung. Der Artikel soll mindestens 400 Wörter umfassen. Zielgruppe sind Menschen mit Schlafproblemen
-oder dem Wunsch nach besserer Schlafqualität."""
+oder dem Wunsch nach besserer Schlafqualität. Füge keinen <h1>-Titel ein, da dieser separat angezeigt wird."""
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{ "role": "user", "content": prompt }]
@@ -73,7 +73,7 @@ def generate_tags(topic):
 # Shopify'a gönder
 def post_to_shopify(title, content_html, tags):
     faq = generate_faq(title)
-    
+
     # Accordion formatlı FAQ oluştur
     faq_items = []
     question = ""
@@ -84,16 +84,18 @@ def post_to_shopify(title, content_html, tags):
             answer = line.split(":", 1)[1].strip()
             faq_items.append(f"""
 <details>
-  <summary>{question}</summary>
+  <summary style="font-weight: bold; font-size: 1.2em;">{question}</summary>
   <p>{answer}</p>
 </details>
 """)
 
     faq_html = '<h2>Häufige Fragen</h2>' + ''.join(faq_items)
 
+    # İçerik ve FAQ birleşimi
     converted_content = content_html.replace("\n", "<br>")
     full_html = f'{converted_content}<br><br>{faq_html}'
 
+    # Shopify API gönderimi
     url = f"https://{SHOPIFY_STORE}/admin/api/2023-07/blogs/{BLOG_ID}/articles.json"
     headers = {
         "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
@@ -104,15 +106,12 @@ def post_to_shopify(title, content_html, tags):
             "title": title,
             "body_html": full_html,
             "tags": ', '.join(tags),
-            "published": True  # Yayınlansın
+            "published": True
         }
     }
 
-    # Hata ayıklamak için çıktılar
-    print("Gönderilen başlık uzunluğu:", len(title))
-    print("Shopify URL:", url)
-    print("Veri:", data)
-
+    # Yanıt kontrolü
+    print("Shopify başlık uzunluğu:", len(title))
     response = requests.post(url, headers=headers, json=data)
     print("Shopify response:", response.status_code)
     print(response.json())
