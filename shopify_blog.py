@@ -3,14 +3,17 @@ import openai
 import requests
 import re
 
+# Ortam değişkenlerinden API anahtarlarını ve bilgileri al
 openai.api_key = os.getenv("OPENAI_API_KEY")
 SHOPIFY_ACCESS_TOKEN = os.getenv("SHOPIFY_ACCESS_TOKEN")
 SHOPIFY_STORE = os.getenv("SHOPIFY_STORE")
 BLOG_ID = os.getenv("BLOG_ID")
 
+# Başlıktaki gereksiz tırnakları temizle
 def clean_title(title):
     return re.sub(r'^"|"$', '', title.strip())
 
+# SEO dostu başlık üret
 def generate_topic():
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -25,6 +28,7 @@ def generate_topic():
     )
     return clean_title(response.choices[0].message["content"].strip())
 
+# SSS oluştur
 def generate_faq(topic):
     faq_prompt = f"""Du bist ein SEO-Texter. 
 Erstelle 5 häufig gestellte Fragen mit jeweils einer sehr kurzen Antwort zum Thema "{topic}". 
@@ -41,6 +45,7 @@ Antwort: ...
     )
     return response.choices[0].message["content"].strip()
 
+# Blog içeriğini üret
 def generate_blog_content(topic):
     prompt = f"""Du bist ein professioneller SEO-Texter mit Fokus auf organische Sichtbarkeit.
 Schreibe einen strukturierten Blogartikel auf Deutsch über folgendes Thema: {topic}.
@@ -54,6 +59,7 @@ oder dem Wunsch nach besserer Schlafqualität."""
     )
     return response.choices[0].message["content"].strip()
 
+# SEO etiketlerini üret
 def generate_tags(topic):
     tag_prompt = f"Erstelle 3 passende SEO-Tags auf Deutsch für das Thema '{topic}', ohne Hashtags oder Anführungszeichen."
     response = openai.ChatCompletion.create(
@@ -63,12 +69,32 @@ def generate_tags(topic):
     tags = response.choices[0].message["content"].strip().split("\n")
     return [tag.strip() for tag in tags if tag.strip()]
 
+# Shopify'a blog gönder
 def post_to_shopify(title, content_html, tags):
     faq = generate_faq(title)
-    faq_html = '<h2>Häufige Fragen</h2><ul>' + ''.join(f'<li>{line}</li>' for line in faq.split("\n") if line.strip()) + '</ul>'
+    
+    # SSS kısmını accordion formatında düzenle
+    faq_items = []
+    question = ""
+    for line in faq.split("\n"):
+        if line.lower().startswith("frage"):
+            question = line.split(":", 1)[1].strip()
+        elif line.lower().startswith("antwort"):
+            answer = line.split(":", 1)[1].strip()
+            faq_items.append(f"""
+<details>
+  <summary>{question}</summary>
+  <p>{answer}</p>
+</details>
+""")
+
+    faq_html = '<h2>Häufige Fragen</h2>' + ''.join(faq_items)
+
+    # İçeriği HTML formatına dönüştür
     converted_content = content_html.replace("\n", "<br>")
     full_html = f'{converted_content}<br><br>{faq_html}'
 
+    # Shopify API endpoint
     url = f"https://{SHOPIFY_STORE}/admin/api/2023-07/blogs/{BLOG_ID}/articles.json"
     headers = {
         "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
@@ -85,6 +111,7 @@ def post_to_shopify(title, content_html, tags):
     print("Shopify response:", response.status_code)
     print(response.json())
 
+# Ana akış
 if __name__ == "__main__":
     topic = generate_topic()
     content = generate_blog_content(topic)
